@@ -8,14 +8,14 @@ import numpy as np
 
 from decimal import ROUND_HALF_UP, Decimal
 from model_about.model_abstract import abstract_model_factory, abstract_data_processor
+from config import *
 class model_price_data_processor(abstract_data_processor):
     def __init__(self, task_name) -> None:
         super().__init__(task_name)
     
     def pre_processing(self, data_path, data_mode="single"):
-        data_path  = "stock.csv"
         if data_mode == "single":
-            stock_data = os.path.join(self.data_dir, "股票价格", data_path)
+            stock_data = pd.read_csv(os.path.join(self.data_dir, data_path))
             processed_data = stock_data.copy()
             processed_data.rename(columns={'Target': 'Sharpe Ratio'}, inplace=True)
             processed_data["ExpectedDividend"] = processed_data["ExpectedDividend"].fillna(0)
@@ -31,12 +31,9 @@ class model_price_data_processor(abstract_data_processor):
             processed_data = processed_data.sort_values("Date")
             processed_data.loc[processed_data["AdjustedClose"] == 0, "AdjustedClose"] = np.nan
             processed_data.loc[:, "AdjustedClose"] = processed_data.loc[:, "AdjustedClose"].ffill()
-            return processed_data
+            train_data, valid_data = self.split_dataframe_randomly(processed_data, random_state=RANDOM_SEED)
+            return train_data, valid_data
             
-            
-            
-        
-
 class model_price(abstract_model_factory):
     def __init__(self, task_name, data_processor) -> None:
         super().__init__(task_name, data_processor)
