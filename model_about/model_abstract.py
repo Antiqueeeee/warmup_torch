@@ -5,37 +5,38 @@ sys.path.append(project_path)
 
 from abc import ABC
 from util_base import recorder
-from sklearn.preprocessing import LabelEncoder,MinMaxScaler
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import torch
 import torch.utils.data as data
 import numpy as np
 
-class abstract_model_factory(ABC):
+class abstract_model_factory(torch.nn.Module):
     def __init__(self, task_name, data_processor) -> None:
+        super(abstract_model_factory, self).__init__()
         self.task_name = task_name
         self.data_processor = data_processor
         self.recorder = recorder(task_name)
         self.data_dir = os.path.join(project_path, "model_about", "datasets")
 
-    def model_load(self, model_path):
+    def custom_model_load(self, model_path):
         model = "torch.load"
         return model
     
-    def model_save(self, model) -> bool:
+    def custom_model_save(self, model) -> bool:
         save_path = "save_path"
         model_save = "save_model"
         flag = True if model_save == "save_model" else False
         return flag
     
-    def inference(self, model):
+    def custom_inference(self, model):
         pass
     
-    def training(self, model):
+    def custom_training(self, model):
         pass
     
-    def feature_select(self):
+    def custom_feature_select(self):
         pass
     
 
