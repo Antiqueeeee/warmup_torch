@@ -3,8 +3,8 @@ current_path = os.path.abspath(os.path.join(__file__, "../"))
 project_path = os.path.abspath(os.path.join(current_path, "../"))
 sys.path.append(project_path)
 
-from abc import ABC
-from utils import supreme_recorder
+from abc import ABC, abstractmethod
+from utils import recorder
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from sklearn.model_selection import train_test_split
 import pandas as pd
@@ -17,26 +17,23 @@ class abstract_model_factory(torch.nn.Module):
         super(abstract_model_factory, self).__init__()
         self.task_name = task_name
         self.data_processor = data_processor
-        self.recorder = supreme_recorder
-        self.data_dir = os.path.join(project_path, "model_about", "datasets")
+        self.recorder = recorder(task_name = task_name)
+        self.data_dir = os.path.join(project_path, "model_about", "datasets", task_name)
 
-    def custom_model_load(self, model_path):
-        model = "torch.load"
-        return model
-    
-    def custom_model_save(self, model) -> bool:
-        save_path = "save_path"
-        model_save = "save_model"
-        flag = True if model_save == "save_model" else False
-        return flag
-    
-    def custom_inference(self, model):
+    @abstractmethod
+    def model_load(self, model_path):
         pass
     
-    def custom_training(self, model):
+    @abstractmethod
+    def model_save(self, model):
         pass
-    
-    def custom_feature_select(self):
+
+    @abstractmethod
+    def model_inference(self, model):
+        pass
+
+    @abstractmethod
+    def model_training(self, model):
         pass
     
 
