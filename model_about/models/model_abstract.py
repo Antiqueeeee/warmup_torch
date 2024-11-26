@@ -4,7 +4,7 @@ project_path = os.path.abspath(os.path.join(current_path, "../"))
 sys.path.append(project_path)
 
 from abc import ABC
-from util_base import recorder
+from utils import supreme_recorder
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from sklearn.model_selection import train_test_split
 import pandas as pd
@@ -17,7 +17,7 @@ class abstract_model_factory(torch.nn.Module):
         super(abstract_model_factory, self).__init__()
         self.task_name = task_name
         self.data_processor = data_processor
-        self.recorder = recorder(task_name)
+        self.recorder = supreme_recorder
         self.data_dir = os.path.join(project_path, "model_about", "datasets")
 
     def custom_model_load(self, model_path):
@@ -43,7 +43,7 @@ class abstract_model_factory(torch.nn.Module):
 class abstract_data_processor(ABC):
     def __init__(self, task_name) -> None:
         self.task_name = task_name
-        self.recorder = recorder(task_name)
+        self.recorder = supreme_recorder(task_name)
         self.data_dir = os.path.join(project_path, "model_about", "datasets", task_name)
     
     def make_dataloader(self, dataframe, window_size, pred_len, shuffle_flag, batch_size, drop_last_flag=True):

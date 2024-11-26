@@ -1,5 +1,6 @@
 import os, sys
-project_path = os.path.abspath("./")
+current_path = os.path.abspath(__file__)
+project_path = os.path.abspath(os.path.join(current_path, "../"))
 sys.path.append(project_path)
 
 import logging
@@ -47,4 +48,5 @@ class recorder:
     
     def time_now(self):
         return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
 

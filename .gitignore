@@ -5,7 +5,7 @@ __pycache__/
 config.py
 # C extensions
 *.so
-
+checkpoints_trained/
 # Distribution / packaging
 .Python
 build/

@@ -8,7 +8,7 @@ import numpy as np
 import math
 from decimal import ROUND_HALF_UP, Decimal
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
-from model_about.model_abstract import abstract_model_factory, abstract_data_processor
+from model_about.models.model_abstract import abstract_model_factory, abstract_data_processor
 from config import *
 from torch import nn
 class model_price_data_processor(abstract_data_processor):
