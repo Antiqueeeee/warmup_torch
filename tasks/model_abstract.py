@@ -4,13 +4,13 @@ project_path = os.path.abspath(os.path.join(current_path, "../"))
 sys.path.append(project_path)
 
 from abc import ABC, abstractmethod
-from utils import recorder
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import torch
 import torch.utils.data as data
 import numpy as np
+from utils import recorder, BasicPathCreator
 
 class abstract_model_factory(torch.nn.Module):
     def __init__(self, task_name, data_processor) -> None:
@@ -18,10 +18,11 @@ class abstract_model_factory(torch.nn.Module):
         self.task_name = task_name
         self.data_processor = data_processor
         self.recorder = recorder(task_name = task_name)
-        self.data_dir = os.path.join(project_path, "model_about", "datasets", task_name)
-
+        self.path_mananager = BasicPathCreator(task_name=task_name)
+        self._check_necessary_property()
+        
     @abstractmethod
-    def model_load(self, model_path):
+    def model_load(self, saved_checkpoint_path):
         pass
     
     @abstractmethod
@@ -29,19 +30,27 @@ class abstract_model_factory(torch.nn.Module):
         pass
 
     @abstractmethod
-    def model_inference(self, model):
+    def model_inference(self, test_file):
         pass
 
     @abstractmethod
     def model_training(self, model):
         pass
     
+    def _check_necessary_property(self):
+        # """检查子类是否定义了 supported_instruction 属性"""
+        # if not hasattr(self, 'supported_instruction'):
+        #     raise NotImplementedError("子类必须在super()之前定义 supported_instruction 属性")
+        
+        # if not hasattr(self, 'supported_model'):
+        #     raise NotImplementedError("子类必须在super()之前定义 supported_instruction 属性")
+        pass
 
 class abstract_data_processor(ABC):
     def __init__(self, task_name) -> None:
         self.task_name = task_name
-        self.recorder = supreme_recorder(task_name)
-        self.data_dir = os.path.join(project_path, "model_about", "datasets", task_name)
+        self.recorder = recorder(task_name)
+        self.path_mananager = BasicPathCreator(task_name=task_name)
     
     def make_dataloader(self, dataframe, window_size, pred_len, shuffle_flag, batch_size, drop_last_flag=True):
         X, y, y_indices = [], [], []

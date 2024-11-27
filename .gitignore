@@ -8,6 +8,9 @@ checkpoints_trained/
 # Distribution / packaging
 .Python
 build/
+results/
+temporary/
+datasets/
 develop-eggs/
 dist/
 downloads/

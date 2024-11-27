@@ -5,12 +5,12 @@ import uvicorn
 
 from config import *
 from server_about.interfaceParams import *
-from task_about import taskmanager_drug_tox
+from tasks import taskmanager_drug_efficacy
 
 app = FastAPI()
 
 managers = {
-    "药物毒性预测" : taskmanager_drug_tox
+    "药物有效性" : taskmanager_drug_efficacy
 }
 
 class Server(FastAPI):
@@ -19,11 +19,11 @@ class Server(FastAPI):
         self.post("/runCommand")(self.run_command)
     
     def run_command(self, parameters : paramsRunCommand):
-        task, instruction = parameters.task, parameters.instruction
+        task = parameters.task
         if task not in managers.keys():
             return {"data" : "不支持当前任务"}
         taskmanager = managers[task](task_name = task)
-        result = taskmanager.run_command(instruction)
+        result = taskmanager.run_command(**parameters.dict())
         return result
         
     def run(self):
