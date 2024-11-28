@@ -10,6 +10,7 @@ checkpoints_trained/
 build/
 results/
 temporary/
+records_about/
 datasets/
 develop-eggs/
 dist/
