@@ -16,10 +16,9 @@ tasks = ["药物有效性"]
 
 
 class Process:
-    def __init__(self, username, password, target_email):
+    def __init__(self, username, password):
         self.username = username
         self.password = password
-        self.target_email = target_email
         self.mail = IMAPClient("imap.163.com", port=993, ssl=True)
         self.mail.login(self.username, self.password)
         self.mail.id_({"name": "IMAPClient", "version": "2.1.0"})
@@ -40,6 +39,11 @@ class Process:
             with open(_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
             return data
+
+    def update_record(self):
+        _file = os.path.join(project_path, "records_about", "email_processed.json")
+        with open(_file, "w" , encoding="utf-8") as f:
+            json.dump(self.processed_record, f , ensure_ascii=False, indent=2)
 
     def get_emails(self):
         criteria = ['ALL']
@@ -93,7 +97,7 @@ class Process:
         downloaded = list()
         # 找到所有未登记过的迈浦附件
         for (uid, email_message) in emails:
-            for link in process.extract_hyperlinks(email_message):
+            for link in self.extract_hyperlinks(email_message):
                 self.recorder.info(f"发现未处理过的邮件ID:\n{uid}")
                 links.append((uid, link))
         # 下载附件
@@ -118,7 +122,7 @@ class Process:
             unpressed.append(unpress_path)
             
 
-        # 找到需要的数据
+        # 找到需要的数据, 按邮件ID和日期重命名
         data_required = list()
         for _path in unpressed:
             _tag = os.path.basename(_path)
@@ -145,10 +149,10 @@ class Process:
                         ,"selected_model" : f"{task}_逻辑回归_20241126_1.pkl"
                         ,"inference_data" : os.path.basename(_path)
                     })
-
-        # 唤起请求
-        for processing in to_be_processed:
-            response = requests.post("http://127.0.0.1:8000/runCommand",json=processing)
+        return to_be_processed
+        # # 唤起请求
+        # for processing in to_be_processed:
+        #     response = requests.post("http://127.0.0.1:8000/runCommand",json=processing)
         # 轮询预测结果，更新处理过的数据记录
     
         # 将process_email设置为定时任务
@@ -167,6 +171,14 @@ if __name__ == '__main__':
     #         print(data)
     #         print()
 
-    target_email = "mapbioo@163.com"
-    process = Process("mapgenedata@163.com", "FAifiQkpYHk3jrFr", target_email)
-    emails = process.process_emails()
+    # process = Process("mapgenedata@163.com", "FAifiQkpYHk3jrFr")
+    # emails = process.process_emails()
+    params = {
+        "task" : "药物有效性"
+        ,"instruction" : "模型推理"
+        ,"selected_model" : f"药物有效性_逻辑回归_20241126_1.pkl"
+        ,"inference_data" : os.path.basename('20241126_检测结果.xlsx')
+        }
+    response = requests.post("http://127.0.0.1:8000/runCommand", json=params).json().get("tasks_id", str())
+    response
+    print(response)

@@ -34,6 +34,8 @@ def set_seed():
     torch.backends.cudnn.deterministic = True  # 确保每次返回的卷积算法将是确定的
     torch.backends.cudnn.benchmark = False
 
+EMAIL_PROCESSOR = os.environ.get("EMAIL_PROCESSOR", "username")
+EMAIL_PROCESSOR_PWD = os.environ.get("EMAIL_PROCESSOR_PWD", "password")
 
 # 设定随机数种子
 set_seed()

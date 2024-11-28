@@ -104,8 +104,8 @@ class LogisiticRegression(abstract_model_factory):
                 self.path_mananager.get_path("results")
                 , f"_{test_file_name}.预测结果{test_file_fix}"
             )
-        self.recorder.info(f"{self.task_name} - 预测结果存储位置为: {_path}")
         results_with_info.to_excel(_path, index=False)
+        self.recorder.info(f"{self.task_name} - 预测结果存储位置为: {_path}")
         return _path
         
     def model_training(self, model):

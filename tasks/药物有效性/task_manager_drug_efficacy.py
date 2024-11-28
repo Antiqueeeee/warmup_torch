@@ -31,7 +31,10 @@ class taskmanager_drug_efficacy(abstract_task_manager):
             model_manager = manager(task_name=self.task_name, data_processor=data_processor)
             model_manager.model_load(selected_model)
             results = model_manager.model_inference(inference_data)
-            return {"data" : f"任务已完成：{self.task_name}-{instruction}-{results} "}
+            return {
+                "data" : f"任务已完成：{self.task_name}-{instruction}-{results}"
+                ,"UID" : os.path.splitext(kwargs["inference_data"])[0]
+            }
 
     def data_upload(self, result_path):
         frame = pd.read_excel(result_path)
