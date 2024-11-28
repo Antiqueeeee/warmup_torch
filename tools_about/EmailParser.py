@@ -3,14 +3,18 @@ current_path = os.path.abspath(os.path.join(__file__, "../"))
 project_path = os.path.abspath(os.path.join(current_path, "../"))
 sys.path.append(project_path)
 import email
-from email.header import decode_header
 from imapclient import IMAPClient
-import io
+import zipfile
 import pandas as pd
+import requests
 import re
 import json
 from utils import recorder
 from html import unescape
+
+tasks = ["药物有效性"]
+
+
 class Process:
     def __init__(self, username, password, target_email):
         self.username = username
@@ -23,10 +27,10 @@ class Process:
         self.processed_record = self.get_record()
         self.recorder = recorder(task_name="邮件处理工具")
     # 如果流程精细的话，从接到邮件开始，应该是一个任务开始执行，应该有完整的处理流程，中途报错也应该有特定的处理方式
-    # BTW，任务执行完了应该还要将处理过的邮件数据更新到record当中
+
     def get_record(self):
         os.makedirs(os.path.join(project_path, "temporary"),exist_ok=True)
-        _file = os.path.join(project_path, "temporary", "email_processed.json")
+        _file = os.path.join(project_path, "records_about", "email_processed.json")
         if os.path.exists(_file) is False:
             with open(_file, "w" , encoding="utf-8") as f:
                 json.dump(list(), f , ensure_ascii=False, indent=2)
@@ -36,7 +40,6 @@ class Process:
             with open(_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
             return data
-
 
     def get_emails(self):
         criteria = ['ALL']
@@ -71,24 +74,8 @@ class Process:
         if len(hyperlinks) > 0:
             hyperlinks = [hyperlinks[-1]]
         return hyperlinks
-
-    def process_emails(self):
-        emails = self.get_emails()
-        links = list()
-        downloaded = list()
-        for (uid, email_message) in emails:
-            for link in process.extract_hyperlinks(email_message):
-                links.append((uid, link))
-
-        for (uid, link) in links:
-            file_name = os.path.join(project_path, "temporary", uid + ".zip")
-            flag = self.attachment_download(link, file_name)
-            if flag is True:
-                downloaded.append(file_name)
-        for down in downloaded:
-            pass
+    
     def attachment_download(self, url, file_name):
-        import requests
         try:
             response = requests.get(url, stream=True)
             response.raise_for_status()  # 如果请求失败会抛出异常
@@ -96,13 +83,75 @@ class Process:
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         file.write(chunk)
-            self.recorder.info(f"邮箱工具下载附件成功：\n{url}")
-            return True
+            return True, "Success"
         except Exception as e:
-            self.recorder.error(f"邮箱工具下载附件失败:\n{url}\n错误原因：\n{str(e)}")
-            return False
+            return False, str(e)
         
-        
+    def process_emails(self):
+        emails = self.get_emails()
+        links = list()
+        downloaded = list()
+        # 找到所有未登记过的迈浦附件
+        for (uid, email_message) in emails:
+            for link in process.extract_hyperlinks(email_message):
+                self.recorder.info(f"发现未处理过的邮件ID:\n{uid}")
+                links.append((uid, link))
+        # 下载附件
+        for (uid, link) in links:
+            file_name = os.path.join(project_path, "temporary", uid + ".zip")
+            flag, msg = self.attachment_download(link, file_name)
+            if flag is True:
+                downloaded.append(file_name)
+                self.recorder.info(f"邮箱ID:{uid}-下载附件成功")
+            else:
+                self.recorder.error(f"邮箱ID:{uid}-下载附件失败，错误原因：\n{msg}")
+
+        # 解压文件
+        unpressed = list()
+        for down in downloaded:
+            file_name, file_fix = os.path.splitext(os.path.basename(down))
+            unpress_path = os.path.join(os.path.dirname(down), file_name)
+            os.makedirs(unpress_path, exist_ok=True)
+            with zipfile.ZipFile(down, "r", metadata_encoding="gbk") as f:
+                for file in f.namelist():
+                    f.extract(file, unpress_path)
+            unpressed.append(unpress_path)
+            
+
+        # 找到需要的数据
+        data_required = list()
+        for _path in unpressed:
+            _tag = os.path.basename(_path)
+            for root, dirs, files in os.walk(_path):
+                for file in files:
+                    file_name, file_fix = os.path.splitext(file)
+                    _path = os.path.join(root, file)
+                    new_name = os.path.join(root, _tag + file_fix)
+                    if ".xls" in file  or ".xlsx" in file:
+                        os.rename(_path, new_name)
+                        data_required.append(new_name)
+                        
+        # 读取数据，重新保存到相应位置
+        to_be_processed = list()
+        for data in data_required:
+            frame = pd.read_excel(data, sheet_name="Marker")
+            file_name, file_fix = os.path.splitext(os.path.basename(data))
+            for task in tasks:
+                _path = os.path.join(project_path, 'tasks', '药物有效性', 'datasets', file_name + '.xlsx')
+                frame.to_excel(_path, index=False)
+                to_be_processed.append({
+                        "task" : task
+                        ,"instruction" : "模型推理"
+                        ,"selected_model" : f"{task}_逻辑回归_20241126_1.pkl"
+                        ,"inference_data" : os.path.basename(_path)
+                    })
+
+        # 唤起请求
+        for processing in to_be_processed:
+            response = requests.post("http://127.0.0.1:8000/runCommand",json=processing)
+        # 轮询预测结果，更新处理过的数据记录
+    
+        # 将process_email设置为定时任务
 
 
 if __name__ == '__main__':
