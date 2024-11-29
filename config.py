@@ -37,5 +37,10 @@ def set_seed():
 EMAIL_PROCESSOR = os.environ.get("EMAIL_PROCESSOR", "username")
 EMAIL_PROCESSOR_PWD = os.environ.get("EMAIL_PROCESSOR_PWD", "password")
 
+SECRETKEY = os.environ.get("SECRETKEY", "")
+BACKEND_ADDRESS = os.environ.get("BACKEND_ADDRESS", "192.168.1.21") 
+BACKEND_PORT = int(os.environ.get("BACKEND_PORT", "8046") )
+INTERFACE_GENE_DATA_UPLOAD = f"http://{BACKEND_ADDRESS}:{BACKEND_PORT}/geneLoci/api/v1/finishGeneLociCheck"
+INTERFACE_SECRET = "data={json_data}&timestamp={timestamp}&nonce={nonce}&key={key}"
 # 设定随机数种子
 set_seed()

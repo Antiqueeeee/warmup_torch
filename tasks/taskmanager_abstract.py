@@ -1,6 +1,7 @@
 import os, sys
 from abc import ABC, abstractmethod
 from utils import recorder, BasicPathCreator
+import hashlib
 
 current_path = os.path.abspath(os.path.join(__file__, "../"))
 project_path = os.path.abspath(os.path.join(current_path, "../"))
@@ -29,3 +30,9 @@ class abstract_task_manager(ABC):
             return True
         else:
             return False
+        
+    def md5_encoding(self, query):
+        query = query.encode("utf-8")
+        md5 = hashlib.md5()
+        md5.update(query)
+        return md5.hexdigest()

@@ -49,6 +49,7 @@ class Process:
         criteria = ['ALL']
         messages = self.mail.search(criteria)
         emails = []
+        self.processed_record = self.get_record()
         for uid in messages:
             response = self.mail.fetch(uid, ['RFC822', 'INTERNALDATE'])
             raw_message = response[uid][b'RFC822']
@@ -98,10 +99,11 @@ class Process:
         # 找到所有未登记过的迈浦附件
         for (uid, email_message) in emails:
             for link in self.extract_hyperlinks(email_message):
-                self.recorder.info(f"发现未处理过的邮件ID:\n{uid}")
+                self.recorder.info(f"发现未处理过的邮件ID:\t{uid}")
                 links.append((uid, link))
         # 下载附件
         for (uid, link) in links:
+            self.recorder.info(f"开始下载邮件中附件:\t{uid}")
             file_name = os.path.join(project_path, "temporary", uid + ".zip")
             flag, msg = self.attachment_download(link, file_name)
             if flag is True:
@@ -132,7 +134,10 @@ class Process:
                     _path = os.path.join(root, file)
                     new_name = os.path.join(root, _tag + file_fix)
                     if ".xls" in file  or ".xlsx" in file:
-                        os.rename(_path, new_name)
+                        try: # 可能上一次任务正在执行，还未登记时，会报错
+                            os.rename(_path, new_name)
+                        except:
+                            pass
                         data_required.append(new_name)
                         
         # 读取数据，重新保存到相应位置
