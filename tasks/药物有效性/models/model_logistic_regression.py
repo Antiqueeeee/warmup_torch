@@ -67,6 +67,10 @@ class LogisiticRegression(abstract_model_factory):
     def model_save(self, model):
         return super().model_save(model)
     
+    def data_mapping(self):
+        pass
+        
+    
     def model_inference(self, test_file):
         test_file_name, test_file_fix = os.path.splitext(test_file)
         _path = os.path.join(self.path_mananager.get_path("datasets"), test_file)

@@ -87,7 +87,7 @@ if __name__ == "__main__":
     #     ,"inference_data" : "20241126_检测结果.xlsx"
     # }
     # tm.run_command(**kwargs)
-    
+    load_dotenv()
     task_name = "药物有效性"
     tm = taskmanager_drug_efficacy(task_name)
-    tm.data_upload(r"E:\feynmindPyhton\warmup_torch\tasks\药物有效性\results\_1730796867-20241129.预测结果.xlsx")
+    tm.data_upload(r"E:\feynmindPyhton\warmup_torch\tasks\药物有效性\results\测试上传.xlsx")

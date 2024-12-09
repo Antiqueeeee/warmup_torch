@@ -49,6 +49,7 @@ class task_manager_drug_shot_tox(abstract_task_manager):
                     "data" : f"任务异常：{self.task_name}-{instruction}-{response.get('msg', '服务器未返回Msg')}"
                     ,"UID" : os.path.splitext(kwargs["inference_data"])[0]
                 }
+                
     def data_upload(self, result_path):
         frame = pd.read_excel(result_path)
         params = list()
@@ -56,7 +57,7 @@ class task_manager_drug_shot_tox(abstract_task_manager):
             params.append({
                 "checkTime": param["日期"],
                 "sampleSerialNumber": param["样品编号"],
-                "methotrexateEffectivePercentage": float(param["有效性类别1概率"]),
+                "methotrexateEffectivePercentage": float(param["短期肝毒性类别1概率"]),
                 "shortTermHepatotoxicityProbability": None,
                 "longTermHepatotoxicityProbability": None,
                 "timestamp": str(int(time.time()))
@@ -89,4 +90,4 @@ if __name__ == "__main__":
     
     task_name = "药物短期肝毒性"
     tm = task_manager_drug_shot_tox(task_name)
-    # tm.data_upload(r"E:\feynmindPyhton\warmup_torch\tasks\药物有效性\results\_1730796867-20241129.预测结果.xlsx")
+    tm.data_upload(r"E:\feynmindPyhton\warmup_torch\tasks\药物有效性\results\测试上传.xlsx")
