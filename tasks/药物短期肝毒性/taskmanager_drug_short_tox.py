@@ -45,6 +45,7 @@ class task_manager_drug_shot_tox(abstract_task_manager):
                     ,"UID" : os.path.splitext(kwargs["inference_data"])[0]
                 }
             else:
+                self.recorder.error(f"数据同步失败：{self.task_name}-{instruction}-{response.get('msg', '服务器未返回Msg')}")
                 return {
                     "data" : f"任务异常：{self.task_name}-{instruction}-{response.get('msg', '服务器未返回Msg')}"
                     ,"UID" : os.path.splitext(kwargs["inference_data"])[0]
@@ -88,6 +89,16 @@ if __name__ == "__main__":
     # }
     # tm.run_command(**kwargs)
     
+    # task_name = "药物短期肝毒性"
+    # tm = task_manager_drug_shot_tox(task_name)
+    # tm.data_upload(r"E:\feynmindPyhton\warmup_torch\tasks\药物有效性\results\测试上传.xlsx")
+    
     task_name = "药物短期肝毒性"
     tm = task_manager_drug_shot_tox(task_name)
-    tm.data_upload(r"E:\feynmindPyhton\warmup_torch\tasks\药物有效性\results\测试上传.xlsx")
+    kwargs = {
+        "task_name" : task_name
+        ,"instruction" : "模型推理"
+        ,"selected_model" : "药物短期肝毒性_逻辑回归_20241126_1.pkl"
+        ,"inference_data" : "1730796867-20241129.xlsx"
+    }
+    tm.run_command(**kwargs)

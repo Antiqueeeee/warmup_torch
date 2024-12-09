@@ -45,6 +45,7 @@ class task_manager_drug_long_tox(abstract_task_manager):
                     ,"UID" : os.path.splitext(kwargs["inference_data"])[0]
                 }
             else:
+                self.recorder.error(f"数据同步失败：{self.task_name}-{instruction}-{response.get('msg', '服务器未返回Msg')}")
                 return {
                     "data" : f"任务异常：{self.task_name}-{instruction}-{response.get('msg', '服务器未返回Msg')}"
                     ,"UID" : os.path.splitext(kwargs["inference_data"])[0]
