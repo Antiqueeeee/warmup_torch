@@ -4,13 +4,14 @@ project_path = os.path.abspath(os.path.join(current_path, "../"))
 sys.path.append(project_path)
 
 from abc import ABC, abstractmethod
-from sklearn.preprocessing import LabelEncoder, MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import torch
 import torch.utils.data as data
 import numpy as np
 from utils import recorder, BasicPathCreator
+import json
 
 class abstract_model_factory(torch.nn.Module):
     def __init__(self, task_name, data_processor) -> None:
@@ -77,7 +78,6 @@ class abstract_data_processor(ABC):
                          , batch_size = batch_size
                          , drop_last = drop_last_flag) 
         return dataloader
-
     
     def pre_processing(self, data_path, data_mode="single"):
         pass
@@ -125,4 +125,16 @@ class abstract_data_processor(ABC):
         train, valid = train_test_split(dataframe, train_size=train_ratio, random_state=random_state)
         return train, valid
 
+    def simple_feature_mapping(self, column):
+        with open(os.path.join(project_path, "mapping.json"),encoding="utf-8") as f:
+            mapping = json.load(f)
+        return mapping[column]
+
+    # Apply new mapping to results data
+    def map_value(self, x, mapping):
+        x_key = "".join(x.split())
+        for k, v in mapping.items():
+            if set(x_key) == set(k):
+                return v
+        return 1
 
