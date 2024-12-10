@@ -155,12 +155,6 @@ class Process:
                         ,"inference_data" : os.path.basename(_path)
                     })
         return to_be_processed
-        # # 唤起请求
-        # for processing in to_be_processed:
-        #     response = requests.post("http://127.0.0.1:8000/runCommand",json=processing)
-        # 轮询预测结果，更新处理过的数据记录
-    
-        # 将process_email设置为定时任务
 
 
 if __name__ == '__main__':
