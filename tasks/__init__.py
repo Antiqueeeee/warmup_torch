@@ -1,3 +1,5 @@
 from .药物有效性.taskmanager_drug_efficacy import taskmanager_drug_efficacy
+from .药物短期肝毒性.taskmanager_drug_short_tox import task_manager_drug_shot_tox
+from .药物长期肝毒性.taskmanager_drug_long_tox import task_manager_drug_long_tox
 from .model_abstract import abstract_data_processor
 from .model_abstract import abstract_model_factory

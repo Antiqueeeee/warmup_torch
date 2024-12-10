@@ -36,7 +36,7 @@ class task_manager_drug_shot_tox(abstract_task_manager):
             model_manager = manager(task_name=self.task_name, data_processor=data_processor)
             model_manager.model_load(selected_model)
             results = model_manager.model_inference(inference_data)
-            self.recorder.info("模型推理完成")
+            self.recorder.info(f"{self.task_name}-模型推理完成-{kwargs['inference_data']}")
             response = self.data_upload(results)
             if response.get("msg", "操作失败") == "操作成功" :
                 self.recorder.info(f"数据同步完成：{self.task_name}-{instruction}-{results}")
