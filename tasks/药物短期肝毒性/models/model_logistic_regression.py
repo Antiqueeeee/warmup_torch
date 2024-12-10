@@ -5,6 +5,7 @@ sys.path.append(project_path)
 import pickle
 import pandas as pd
 
+
 from tasks.model_abstract import abstract_model_factory, abstract_data_processor
 from sklearn.impute import SimpleImputer
 
@@ -13,75 +14,7 @@ class LogisiticRegressionDataProcessor(abstract_data_processor):
     def __init__(self, task_name) -> None:
         super().__init__(task_name)
 
-    # def simple_feature_mapping(self, column):
-    #     origin_data = pd.read_excel(
-    #         os.path.join(
-    #             self.path_mananager.get_path("datasets")
-    #             , "2024.9.12 300人的43SNP基因型疗效肝毒性.xlsx"
-    #         )
-    #     )
-    #     mapping = dict(origin_data[column].value_counts())
-    #     mapping = {"".join(k.split()): v for k, v in mapping.items()}
-    #     mapping.pop("00", None)
-    #     keys_with_set_size_2 = [k for k in mapping if len(set(k)) == 2]
-    #     filtered_keys = {k: v for k, v in mapping.items() if k not in keys_with_set_size_2}
-    #     max_value_key = max(filtered_keys, key=filtered_keys.get)
-    #     min_value_key = min(filtered_keys, key=filtered_keys.get)
-    #     # Update mapping values
-    #     for key in keys_with_set_size_2:
-    #         mapping[key] = 1
-    #     mapping[max_value_key] = 0
-    #     mapping[min_value_key] = 2
-    #     return mapping
 
-    def simple_feature_mapping(self, column):
-        origin_data = pd.read_excel(
-            os.path.join(
-                self.path_mananager.get_path("datasets")
-                , "2024.9.12 300人的43SNP基因型疗效肝毒性.xlsx"
-            )
-        )
-        mapping = dict(origin_data[column].value_counts())
-        mapping = {"".join(k.split()): v for k, v in mapping.items()}
-        mapping.pop("00", None)
-        
-        # 找出所有set大小为2的键
-        keys_with_set_size_2 = [k for k in mapping if len(set(k)) == 2]
-        
-        # 过滤掉set大小为2的键
-        filtered_keys = {k: v for k, v in mapping.items() if k not in keys_with_set_size_2}
-        
-        # 获取最大值和最小值对应的键
-        max_value_key = max(filtered_keys, key=filtered_keys.get)
-        min_value_key = min(filtered_keys, key=filtered_keys.get)
-        
-        # 先处理set大小为2的键
-        for key in keys_with_set_size_2:
-            mapping[key] = 1
-            
-        # 处理最大值和最小值键
-        if max_value_key == min_value_key:
-            # 如果最大值键和最小值键相同，将其设为2
-            mapping[max_value_key] = 2
-            # 将剩余的键（除了set大小为2的键和max_value_key）设为0
-            for key in filtered_keys:
-                if key != max_value_key:
-                    mapping[key] = 0
-        else:
-            # 原来的逻辑
-            mapping[max_value_key] = 0
-            mapping[min_value_key] = 2
-            
-        return mapping
-
-
-    # Apply new mapping to results data
-    def map_value(self, x, mapping):
-        x_key = "".join(x.split())
-        for k, v in mapping.items():
-            if set(x_key) == set(k):
-                return v
-        return 1
 
 class LogisiticRegression(abstract_model_factory):
     def __init__(self, task_name, data_processor) -> None:
@@ -116,8 +49,6 @@ class LogisiticRegression(abstract_model_factory):
         # 映射
         for column in results_data.columns:
             if column in self.required_features:
-                if "rs243195" in column:
-                    print()
                 mapping = self.data_processor.simple_feature_mapping(column)
                 results_data[column] = results_data[column].apply(lambda x: self.data_processor.map_value(x, mapping))
         _path = os.path.join(
@@ -139,7 +70,7 @@ class LogisiticRegression(abstract_model_factory):
             f'短期肝毒性类别': predictions,
             f'短期肝毒性类别1概率': probabilities
         })
-        results_with_info = pd.merge(results_data, prediction_results, on='样品编号')
+        results_with_info = pd.merge(prediction_results, results_data, on='样品编号')
         _path = os.path.join(
                 self.path_mananager.get_path("results")
                 , f"_{test_file_name}.预测结果{test_file_fix}"
@@ -157,3 +88,52 @@ if __name__ == "__main__":
     test_file = "1730796867-20241129.xlsx"
     lr = LogisiticRegression(task_name=task_name,data_processor=data_prcessor)
     lr.model_inference(test_file=test_file)
+    
+    
+    # # 数据映射
+    # task_name = "药物短期肝毒性"
+    # data_prcessor = LogisiticRegressionDataProcessor(task_name=task_name)
+    # origin_data = pd.read_excel(
+    #     os.path.join(
+    #         # self.path_mananager.get_path("datasets")
+    #         data_prcessor.path_mananager.get_path("datasets")
+    #         , "2024.9.12 300人的43SNP基因型疗效肝毒性.xlsx"
+    #     )
+    # )
+    # origin_data = origin_data[[i for i in origin_data.columns if i not in ["sample", "efficacy", "short-time hepatoxicity","long-term hepatoxicity"]]]
+    # result = dict()
+    # for column in origin_data.columns:
+    #     mapping = dict(origin_data[column].value_counts())
+    #     mapping = {"".join(k.split()): v for k, v in mapping.items()}
+    #     mapping.pop("00", None)
+        
+    #     # 找出所有set大小为2的键
+    #     keys_with_set_size_2 = [k for k in mapping if len(set(k)) == 2]
+        
+    #     # 过滤掉set大小为2的键
+    #     filtered_keys = {k: v for k, v in mapping.items() if k not in keys_with_set_size_2}
+        
+    #     # 获取最大值和最小值对应的键
+    #     max_value_key = max(filtered_keys, key=filtered_keys.get)
+    #     min_value_key = min(filtered_keys, key=filtered_keys.get)
+        
+    #     # 先处理set大小为2的键
+    #     for key in keys_with_set_size_2:
+    #         mapping[key] = 1
+            
+    #     # 处理最大值和最小值键
+    #     if max_value_key == min_value_key:
+    #         # 如果最大值键和最小值键相同，将其设为2
+    #         mapping[max_value_key] = 2
+    #         # 将剩余的键（除了set大小为2的键和max_value_key）设为0
+    #         for key in filtered_keys:
+    #             if key != max_value_key:
+    #                 mapping[key] = 0
+    #     else:
+    #         # 原来的逻辑
+    #         mapping[max_value_key] = 0
+    #         mapping[min_value_key] = 2
+    #     result[column] = mapping
+    # with open("mapping.json", "w",encoding="utf-8") as f:
+    #     json.dump(result,f,ensure_ascii=False,indent=2)
+        
