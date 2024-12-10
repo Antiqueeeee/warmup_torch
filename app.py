@@ -8,6 +8,9 @@ from config import *
 import schedule
 from server_about.interfaceParams import *
 from tasks import taskmanager_drug_efficacy
+from tasks import task_manager_drug_long_tox
+from tasks import task_manager_drug_shot_tox
+
 from threading import Thread
 from tools_about.EmailParser import Process
 import time
@@ -15,10 +18,15 @@ import time
 app = FastAPI()
 
 managers = {
-    "药物有效性" : taskmanager_drug_efficacy
+    "药物有效性" : taskmanager_drug_efficacy,
+    "药物短期肝毒性" : task_manager_drug_shot_tox,
+    "药物长期肝毒性" : task_manager_drug_long_tox
 }
 
-
+# 创建相关路径
+for key,values in managers.items():
+    print(key)
+    managers[key](task_name=key)
 
 class Server(FastAPI):
     def __init__(self):   
@@ -85,7 +93,7 @@ class Server(FastAPI):
         #     self.email_processed_record.remove(record)
         self.update_emails_record()
         
-        to_be_processed = self.email_processor.process_emails()
+        to_be_processed = self.email_processor.process_emails(managers.keys())
         for _process in to_be_processed:
             _tasks_id = requests.post(f"http://127.0.0.1:{SERVER_PORT}/runCommand", json=_process).json().get("task_id", str())
             self.email_processed_record.append(_tasks_id)
