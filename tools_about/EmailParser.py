@@ -12,9 +12,6 @@ import json
 from utils import recorder
 from html import unescape
 
-tasks = ["药物有效性"]
-
-
 class Process:
     def __init__(self, username, password):
         self.username = username
@@ -25,6 +22,7 @@ class Process:
         self.mail.select_folder("INBOX")
         self.processed_record = self.get_record()
         self.recorder = recorder(task_name="邮件处理工具")
+        self.pending = list()
     # 如果流程精细的话，从接到邮件开始，应该是一个任务开始执行，应该有完整的处理流程，中途报错也应该有特定的处理方式
 
     def get_record(self):
@@ -92,15 +90,17 @@ class Process:
         except Exception as e:
             return False, str(e)
         
-    def process_emails(self):
+    def process_emails(self, tasks = list()):
         emails = self.get_emails()
         links = list()
         downloaded = list()
         # 找到所有未登记过的迈浦附件
         for (uid, email_message) in emails:
             for link in self.extract_hyperlinks(email_message):
-                self.recorder.info(f"发现未处理过的邮件ID:\t{uid}")
-                links.append((uid, link))
+                if uid not in self.pending:
+                    self.recorder.info(f"发现未处理过的邮件ID:\t{uid}")
+                    links.append((uid, link))
+                    self.pending.append(uid)
         # 下载附件
         for (uid, link) in links:
             self.recorder.info(f"开始下载邮件中附件:\t{uid}")
@@ -132,7 +132,7 @@ class Process:
                 for file in files:
                     file_name, file_fix = os.path.splitext(file)
                     _path = os.path.join(root, file)
-                    new_name = os.path.join(root, _tag + file_fix)
+                    new_name = os.path.join(root, f"{_tag}-{file_name}{file_fix}")
                     if ".xls" in file  or ".xlsx" in file:
                         try: # 可能上一次任务正在执行，还未登记时，会报错
                             os.rename(_path, new_name)
@@ -146,7 +146,7 @@ class Process:
             frame = pd.read_excel(data, sheet_name="Marker")
             file_name, file_fix = os.path.splitext(os.path.basename(data))
             for task in tasks:
-                _path = os.path.join(project_path, 'tasks', '药物有效性', 'datasets', file_name + '.xlsx')
+                _path = os.path.join(project_path, 'tasks', task, 'datasets', file_name + '.xlsx')
                 frame.to_excel(_path, index=False)
                 to_be_processed.append({
                         "task" : task
