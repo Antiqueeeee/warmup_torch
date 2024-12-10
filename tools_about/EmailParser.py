@@ -97,8 +97,8 @@ class Process:
         except Exception as e:
             return False, str(e)
 
-    def send_emails(self, file_path):
-        mail_content = "有新的基因预测结果生成，请注意查收"
+    def send_emails(self, file_path, msg = str()):
+        mail_content = f"有新的基因预测结果生成，请注意查收<br>{msg}"
         # 发送邮箱服务器
         smtp_server = 'smtp.163.com'
 
@@ -249,5 +249,5 @@ if __name__ == '__main__':
     # print(response)
     
     process = Process("mapgenedata@163.com", "FAifiQkpYHk3jrFr")
-    process.send_emails(r"E:\feynmindPyhton\warmup_torch\tasks\药物短期肝毒性\results\_1730796860-20241119-新.预测结果.xlsx")
+    process.send_emails(r"E:\feynmindPyhton\warmup_torch\tasks\药物短期肝毒性\results\_1730796860-20241119-新.预测结果.xlsx", msg='药物长期肝毒性 1730796860-20241119')
     

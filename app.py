@@ -74,7 +74,8 @@ class Server(FastAPI):
                 self.email_processor.processed_record.append(_response["UID"])
                 self.email_processor.update_record()
                 to_remove.append(record)
-                
+                # 邮件提醒
+                self.email_processor.send_emails(_response["predict_result"], msg=_response["task"] + _response["UID"])
         for record in to_remove:
             self.email_processed_record.remove(record)
             

@@ -41,14 +41,20 @@ class task_manager_drug_shot_tox(abstract_task_manager):
             if response.get("msg", "操作失败") == "操作成功" :
                 self.recorder.info(f"数据同步完成：{self.task_name}-{instruction}-{results}")
                 return {
+                    "task" : self.task_name,
+                    "instruction" : instruction,
                     "data" : f"任务已完成：{self.task_name}-{instruction}-{results}"
                     ,"UID" : os.path.splitext(kwargs["inference_data"])[0]
+                    ,"predict_result" : results
                 }
             else:
                 self.recorder.error(f"数据同步失败：{self.task_name}-{instruction}-{response.get('msg', '服务器未返回Msg')}")
                 return {
+                    "task" : self.task_name,
+                    "instruction" : instruction,
                     "data" : f"任务异常：{self.task_name}-{instruction}-{response.get('msg', '服务器未返回Msg')}"
                     ,"UID" : os.path.splitext(kwargs["inference_data"])[0]
+                    ,"predict_result" : results
                 }
                 
     def data_upload(self, result_path):
