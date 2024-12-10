@@ -46,6 +46,10 @@ SECRETKEY = os.environ.get("SECRETKEY", "")
 BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8046") 
 INTERFACE_GENE_DATA_UPLOAD = f"{BACKEND_URL}/geneLoci/api/v1/finishGeneLociCheck"
 
+# EMAIL_SEND_TO = 'ykx2292002@aliyun.com'
+EMAIL_SEND_TO = '535047011@qq.com'
+
 INTERFACE_SECRET = "data={json_data}&timestamp={timestamp}&nonce={nonce}&key={key}"
 # 设定随机数种子
 set_seed()
+

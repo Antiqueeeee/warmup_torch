@@ -11,6 +11,13 @@ import re
 import json
 from utils import recorder
 from html import unescape
+import smtplib  # 发邮件的模块
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email.header import Header
+from email import encoders
+from config import *
 
 class Process:
     def __init__(self, username, password):
@@ -89,7 +96,66 @@ class Process:
             return True, "Success"
         except Exception as e:
             return False, str(e)
+
+    def send_emails(self, file_path):
+        mail_content = "有新的基因预测结果生成，请注意查收"
+        # 发送邮箱服务器
+        smtp_server = 'smtp.163.com'
+
+        # 发送邮箱用户名和密码
+        user = EMAIL_PROCESSOR
+        password = EMAIL_PROCESSOR_PWD  # 设置的邮件服务独立密码 
+
+        # 发送和接收邮箱
+        sender = EMAIL_PROCESSOR
         
+        # 用户甲，用户乙...
+        receives = ['535047011@qq.com']
+
+        # 发送邮件主题和内容
+        subject = "最新测试报告"
+
+        # 构建发送和接收信息
+        msg = MIMEMultipart()
+        msg['From'] = sender
+        msg['To'] = ','.join(receives)
+        msg['Subject'] = Header(subject, 'utf-8')
+
+        # 添加邮件正文
+        msg.attach(MIMEText(mail_content, 'html', 'utf-8'))
+
+        # 添加附件
+        with open(file_path, 'rb') as attachment:
+            mime_base = MIMEBase('application', 'vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            mime_base.set_payload(attachment.read())
+            encoders.encode_base64(mime_base)
+            
+            # 使用 Header 进行文件名编码
+            filename = os.path.basename(file_path)
+            encoded_filename = Header(filename, 'utf-8').encode()
+            
+            mime_base.add_header('Content-Disposition', f'attachment; filename="{encoded_filename}"')
+            msg.attach(mime_base)
+
+        # SSl协议端口号要使用465
+        smtp = smtplib.SMTP_SSL(smtp_server, 465)
+
+        # HELO向服务器标识用户的身份
+        smtp.helo(smtp_server)
+
+        # EHLO 服务器返回结果确认
+        smtp.ehlo(smtp_server)
+
+        # 登录邮箱服务器用户名和密码
+        smtp.login(user, password)
+
+        self.recorder.info("发送通知邮件....")
+
+        smtp.sendmail(sender, receives, msg.as_string())
+        smtp.quit()
+        self.recorder.info("邮件发送完成!")
+
+
     def process_emails(self, tasks = list()):
         emails = self.get_emails()
         links = list()
@@ -172,12 +238,16 @@ if __name__ == '__main__':
 
     # process = Process("mapgenedata@163.com", "FAifiQkpYHk3jrFr")
     # emails = process.process_emails()
-    params = {
-        "task" : "药物有效性"
-        ,"instruction" : "模型推理"
-        ,"selected_model" : f"药物有效性_逻辑回归_20241126_1.pkl"
-        ,"inference_data" : os.path.basename('20241126_检测结果.xlsx')
-        }
-    response = requests.post("http://127.0.0.1:8000/runCommand", json=params).json().get("tasks_id", str())
-    response
-    print(response)
+    # params = {
+    #     "task" : "药物有效性"
+    #     ,"instruction" : "模型推理"
+    #     ,"selected_model" : f"药物有效性_逻辑回归_20241126_1.pkl"
+    #     ,"inference_data" : os.path.basename('20241126_检测结果.xlsx')
+    #     }
+    # response = requests.post("http://127.0.0.1:8000/runCommand", json=params).json().get("tasks_id", str())
+    # response
+    # print(response)
+    
+    process = Process("mapgenedata@163.com", "FAifiQkpYHk3jrFr")
+    process.send_emails(r"E:\feynmindPyhton\warmup_torch\tasks\药物短期肝毒性\results\_1730796860-20241119-新.预测结果.xlsx")
+    
